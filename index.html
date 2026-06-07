@@ -239,19 +239,9 @@ async function gerarStory(){
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,1080,1920);
 
-  // Topo neutro
-  ctx.fillStyle = '#111827';
-  ctx.font = '900 58px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('OFERTA ENCONTRADA', 540, 135);
-
-  ctx.fillStyle = '#4b5563';
-  ctx.font = '500 32px Arial';
-  ctx.fillText('Confira antes que acabe', 540, 184);
-
-  // Card da imagem
+  // Card da imagem (MAIS PARA CIMA)
   ctx.fillStyle = '#ffffff';
-  arredondarRetangulo(ctx,70,245,940,855,54);
+  arredondarRetangulo(ctx,70,20,940,700,54);
   ctx.fill();
   ctx.strokeStyle = '#e5e7eb';
   ctx.lineWidth = 4;
@@ -259,40 +249,39 @@ async function gerarStory(){
 
   const img = await loadImageSafe(imgUrl && imgUrl !== 'Imagem enviada do celular' ? imgUrl : imagemLocal);
   if(img){
-    const boxX=115, boxY=300, boxW=850, boxH=745;
+    const boxX=115, boxY=75, boxW=850, boxH=590;
     const scale = Math.min(boxW/img.width, boxH/img.height);
     const w = img.width*scale, h = img.height*scale;
     ctx.drawImage(img, boxX+(boxW-w)/2, boxY+(boxH-h)/2, w, h);
   }else{
     ctx.fillStyle='#f3f4f6';
-    arredondarRetangulo(ctx,115,300,850,745,38);
+    arredondarRetangulo(ctx,115,75,850,590,38);
     ctx.fill();
     ctx.fillStyle='#9ca3af';
     ctx.font='700 38px Arial';
-    ctx.fillText('Imagem do produto',540,670);
+    ctx.fillText('Imagem do produto',540,370);
   }
-
-  // Nome do produto em PRETO (sem tarja azul)
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#111111';
-  ctx.font = '800 48px Arial';
-  const nameEndY = wrapText(title, 120, 1200, 840, 62, 3);
 
   // Badge
   if(badge){
     ctx.fillStyle = '#ff6b00';
     ctx.font = '700 32px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('🟧 ' + badge, 540, 1100);
+    ctx.fillText('🟧 ' + badge, 540, 780);
   }
 
-  // CORREÇÃO: Preço original (riscado) - posicionado ABAIXO do nome
+  // Nome do produto em PRETO
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#111111';
+  ctx.font = '800 48px Arial';
+  const nameEndY = wrapText(title, 120, 850, 840, 62, 3);
+
+  // Preço original (riscado)
   const priceStr = 'R$ ' + priceNum.toFixed(2).replace('.', ',');
   ctx.fillStyle = '#999999';
   ctx.font = '700 48px Arial';
   ctx.textAlign = 'center';
   
-  // Posicionar abaixo do nome (com espaço)
   const priceY = nameEndY + 40;
   ctx.fillText(priceStr, 540, priceY);
   
@@ -323,25 +312,25 @@ async function gerarStory(){
   // Cupom
   if(coupon){
     ctx.fillStyle = '#ffffff';
-    arredondarRetangulo(ctx,120,1545,840,90,28);
+    arredondarRetangulo(ctx,120,1420,840,90,28);
     ctx.fill();
     ctx.fillStyle = '#111827';
     ctx.font = '900 38px Arial';
-    ctx.fillText('CUPOM: ' + coupon.toUpperCase(), 155, 1605);
+    ctx.fillText('CUPOM: ' + coupon.toUpperCase(), 155, 1480);
   }
 
-  // Botão visual
+  // Botão visual (MAIS PARA BAIXO - Y aumentado)
   ctx.fillStyle = '#00a650';
-  arredondarRetangulo(ctx,120,1655,840,120,38);
+  arredondarRetangulo(ctx,120,1550,840,120,38);
   ctx.fill();
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'center';
   ctx.font = '900 48px Arial';
-  ctx.fillText('CLIQUE NO LINK', 540, 1732);
+  ctx.fillText('CLIQUE NO LINK', 540, 1627);
 
   ctx.fillStyle = '#6b7280';
   ctx.font = '500 28px Arial';
-  ctx.fillText('Preço e disponibilidade podem mudar', 540, 1848);
+  ctx.fillText('Preço e disponibilidade podem mudar', 540, 1750);
 }
 
 async function baixarStory(){
