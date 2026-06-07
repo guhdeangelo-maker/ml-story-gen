@@ -73,6 +73,7 @@
     }
     .hint{font-size:13px;color:#6b7280}
     .hidden{display:none}
+    .loading{opacity:0.6;pointer-events:none}
   </style>
 </head>
 <body>
@@ -141,24 +142,52 @@ async function buscarProduto(){
   const url = document.getElementById('url').value.trim();
   if(!url){ setStatus('Cole um link primeiro.'); return; }
 
-  setStatus('Buscando dados do produto...');
+  setStatus('🔍 Buscando dados do produto...');
+  
   try{
+    // Tentar buscar via API backend primeiro
     const r = await fetch('/api/product?url=' + encodeURIComponent(url));
     const data = await r.json();
-
-    if(!r.ok || data.error){
-      setStatus('Não consegui puxar tudo automaticamente.\n' + (data.message || 'Você pode preencher os campos manualmente.'));
-    } else {
-      setStatus('Produto encontrado. Confira os campos e clique em Gerar story.');
-    }
 
     if(data.title) document.getElementById('title').value = data.title;
     if(data.price) document.getElementById('price').value = data.price;
     if(data.image) document.getElementById('image').value = data.image;
 
+    if(!r.ok || data.error){
+      setStatus('⚠️ Não consegui puxar tudo automaticamente.\nVocê pode preencher os campos manualmente.');
+    } else {
+      setStatus('✅ Produto encontrado! Confira os campos e clique em Gerar story.');
+    }
+
     await gerarStory();
   }catch(e){
-    setStatus('Erro ao buscar. Preencha manualmente ou tente outro link.\n' + e.message);
+    // Se falhar, tentar extrair dados da URL diretamente
+    try {
+      const priceMatch = await extrairPrecoDoLink(url);
+      if(priceMatch) {
+        document.getElementById('price').value = priceMatch;
+        setStatus('✅ Preço encontrado! Preencha o nome e gere a story.');
+      } else {
+        setStatus('⚠️ Não consegui extrair o preço.\nPreencha manualmente ou tente outro link.');
+      }
+    } catch(e2) {
+      setStatus('⚠️ Erro ao buscar. Preencha manualmente ou tente outro link.');
+    }
+  }
+}
+
+async function extrairPrecoDoLink(url) {
+  try {
+    // Tentar extrair preço da URL se for meli.la
+    if(url.includes('meli.la')) {
+      // Fazer requisição CORS para o link
+      const response = await fetch(url, { mode: 'no-cors' });
+      // Com no-cors, não conseguimos ler o conteúdo, então retornar null
+      return null;
+    }
+    return null;
+  } catch(e) {
+    return null;
   }
 }
 
@@ -239,9 +268,9 @@ async function gerarStory(){
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,1080,1920);
 
-  // Card da imagem (MAIS PARA CIMA)
+  // Card da imagem (MAIS PARA CIMA e MAIOR)
   ctx.fillStyle = '#ffffff';
-  arredondarRetangulo(ctx,70,20,940,700,54);
+  arredondarRetangulo(ctx,50,10,980,900,54);
   ctx.fill();
   ctx.strokeStyle = '#e5e7eb';
   ctx.lineWidth = 4;
@@ -249,17 +278,17 @@ async function gerarStory(){
 
   const img = await loadImageSafe(imgUrl && imgUrl !== 'Imagem enviada do celular' ? imgUrl : imagemLocal);
   if(img){
-    const boxX=115, boxY=75, boxW=850, boxH=590;
+    const boxX=100, boxY=60, boxW=880, boxH=780;
     const scale = Math.min(boxW/img.width, boxH/img.height);
     const w = img.width*scale, h = img.height*scale;
     ctx.drawImage(img, boxX+(boxW-w)/2, boxY+(boxH-h)/2, w, h);
   }else{
     ctx.fillStyle='#f3f4f6';
-    arredondarRetangulo(ctx,115,75,850,590,38);
+    arredondarRetangulo(ctx,100,60,880,780,38);
     ctx.fill();
     ctx.fillStyle='#9ca3af';
     ctx.font='700 38px Arial';
-    ctx.fillText('Imagem do produto',540,370);
+    ctx.fillText('Imagem do produto',540,450);
   }
 
   // Badge
@@ -267,14 +296,14 @@ async function gerarStory(){
     ctx.fillStyle = '#ff6b00';
     ctx.font = '700 32px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('🟧 ' + badge, 540, 780);
+    ctx.fillText('🟧 ' + badge, 540, 950);
   }
 
   // Nome do produto em PRETO
   ctx.textAlign = 'left';
   ctx.fillStyle = '#111111';
   ctx.font = '800 48px Arial';
-  const nameEndY = wrapText(title, 120, 850, 840, 62, 3);
+  const nameEndY = wrapText(title, 120, 1020, 840, 62, 3);
 
   // Preço original (riscado)
   const priceStr = 'R$ ' + priceNum.toFixed(2).replace('.', ',');
