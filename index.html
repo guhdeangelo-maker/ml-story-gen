@@ -156,7 +156,7 @@ async function buscarProduto(){
     if(data.price) document.getElementById('price').value = data.price;
     if(data.image) document.getElementById('image').value = data.image;
 
-    gerarStory();
+    await gerarStory();
   }catch(e){
     setStatus('Erro ao buscar. Preencha manualmente ou tente outro link.\n' + e.message);
   }
@@ -272,18 +272,11 @@ async function gerarStory(){
     ctx.fillText('Imagem do produto',540,670);
   }
 
-  // MUDANÇAS PRINCIPAIS:
-  // 1. REMOVIDO: Não desenha mais o retângulo azul escuro (#111827)
-  // 2. Nome do produto em PRETO (#111111) em vez de branco
-  // 3. Preço original riscado em cinza
-  // 4. Preço final em PRETO (#111111) em vez de amarelo
-  // 5. Cálculo automático do desconto
-
   // Nome do produto em PRETO (sem tarja azul)
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#111111'; // MUDANÇA: preto em vez de branco
+  ctx.fillStyle = '#111111';
   ctx.font = '800 48px Arial';
-  wrapText(title, 120, 1225, 840, 62, 3);
+  const nameEndY = wrapText(title, 120, 1200, 840, 62, 3);
 
   // Badge
   if(badge){
@@ -293,35 +286,38 @@ async function gerarStory(){
     ctx.fillText('🟧 ' + badge, 540, 1100);
   }
 
-  // Preço original (riscado)
+  // CORREÇÃO: Preço original (riscado) - posicionado ABAIXO do nome
+  const priceStr = 'R$ ' + priceNum.toFixed(2).replace('.', ',');
   ctx.fillStyle = '#999999';
   ctx.font = '700 48px Arial';
   ctx.textAlign = 'center';
-  const priceStr = 'R$ ' + priceNum.toFixed(2).replace('.', ',');
-  ctx.fillText(priceStr, 540, 1320);
+  
+  // Posicionar abaixo do nome (com espaço)
+  const priceY = nameEndY + 40;
+  ctx.fillText(priceStr, 540, priceY);
   
   // Linha de risco
   const textWidth = ctx.measureText(priceStr).width;
   ctx.strokeStyle = '#999999';
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(540 - textWidth/2, 1300);
-  ctx.lineTo(540 + textWidth/2, 1300);
+  ctx.moveTo(540 - textWidth/2, priceY - 15);
+  ctx.lineTo(540 + textWidth/2, priceY - 15);
   ctx.stroke();
 
   // Preço final em PRETO (grande destaque)
-  ctx.fillStyle = '#111111'; // MUDANÇA: preto em vez de amarelo
+  ctx.fillStyle = '#111111';
   ctx.font = '900 92px Arial';
   ctx.textAlign = 'center';
   const finalPriceStr = 'R$ ' + finalPrice.toFixed(2).replace('.', ',');
-  ctx.fillText(finalPriceStr, 540, 1450);
+  ctx.fillText(finalPriceStr, 540, priceY + 120);
 
   // Desconto (selo)
   if(discount > 0){
     ctx.fillStyle = '#ff6b00';
     ctx.font = '700 48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('🟩 ' + discount + '% OFF', 540, 1530);
+    ctx.fillText('🟩 ' + discount + '% OFF', 540, priceY + 200);
   }
 
   // Cupom
@@ -348,13 +344,12 @@ async function gerarStory(){
   ctx.fillText('Preço e disponibilidade podem mudar', 540, 1848);
 }
 
-function baixarStory(){
-  gerarStory().then(() => {
-    const a = document.createElement('a');
-    a.download = 'story-mercado-livre.png';
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-  });
+async function baixarStory(){
+  await gerarStory();
+  const a = document.createElement('a');
+  a.download = 'story-mercado-livre.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
 }
 
 gerarStory();
